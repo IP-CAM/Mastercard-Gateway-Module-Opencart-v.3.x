@@ -1031,10 +1031,10 @@ class ControllerExtensionPaymentMpgsHostedCheckout extends Controller
     protected function processOrder($retrievedOrder, $txn)
     {
         if ($retrievedOrder['status'] === 'CAPTURED') {
-            $message = sprintf($this->language->get('text_payment_captured'), $txn['transaction']['id'], $txn['transaction']['authorizationCode']);
+            $message = sprintf($this->language->get('text_payment_captured'), $txn['transaction']['id'], isset($txn['transaction']['authorizationCode']) ? $txn['transaction']['authorizationCode'] : '');
             $orderStatusId = self::ORDER_CAPTURED;
         } elseif ($retrievedOrder['status'] === 'AUTHORIZED') {
-            $message = sprintf($this->language->get('text_payment_authorized'), $txn['transaction']['id'], $txn['transaction']['authorizationCode']);
+            $message = sprintf($this->language->get('text_payment_authorized'), $txn['transaction']['id'], isset($txn['transaction']['authorizationCode']) ? $txn['transaction']['authorizationCode'] : '');
             $orderStatusId = $this->config->get('payment_mpgs_hosted_checkout_approved_status_id');
         } else {
             throw new Exception($this->language->get('error_transaction_unsuccessful'));
