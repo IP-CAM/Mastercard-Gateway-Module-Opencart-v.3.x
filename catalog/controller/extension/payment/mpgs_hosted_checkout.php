@@ -148,6 +148,8 @@ class ControllerExtensionPaymentMpgsHostedCheckout extends Controller
     {
         $this->load->model('extension/payment/mpgs_hosted_checkout');
         $this->model_extension_payment_mpgs_hosted_checkout->clearCheckoutSession();
+        $order = $this->getOrder();
+        $txnId = uniqid(sprintf('%s-', $order['id']));
 
         $requestData = [
             'apiOperation' => 'CREATE_CHECKOUT_SESSION',
@@ -155,7 +157,10 @@ class ControllerExtensionPaymentMpgsHostedCheckout extends Controller
             'order' => array_merge($this->getOrder(), $this->getOrderItemsTaxAndTotals()),
             'interaction' => $this->getInteraction(),
             'billing' => $this->getBillingAddress(),
-            'customer' => $this->getCustomer()
+            'customer' => $this->getCustomer(),
+            'transaction' => [
+                'reference' => $txnId
+            ]
         ];
 
         if (!empty($this->getShippingAddress())) {
@@ -789,13 +794,15 @@ class ControllerExtensionPaymentMpgsHostedCheckout extends Controller
         $uri = $this->model_extension_payment_mpgs_hosted_checkout->getApiUri() . '/session';
         $session = $this->model_extension_payment_mpgs_hosted_checkout->apiRequest('POST', $uri);
 
+        $txnId = uniqid(sprintf('%s-', $orderId));
         // Update Session
         $uri = $this->model_extension_payment_mpgs_hosted_checkout->getApiUri() . '/session/' . $session['session']['id'];
         $updateSessionData = [
             'order' => [
                 'amount' => $amount,
                 'currency' => $this->session->data['currency'],
-                'id' => $orderId
+                'id' => $orderId,
+                'reference' => $orderId,
             ],
             'partnerSolutionId' => $this->model_extension_payment_mpgs_hosted_checkout->buildPartnerSolutionId(),
             'authentication' => [
@@ -807,6 +814,9 @@ class ControllerExtensionPaymentMpgsHostedCheckout extends Controller
                         'OCSESSID' => $this->session->getId()
                     ], true)
                 )
+            ],
+            'transaction' => [
+                'reference' => $txnId
             ],
             'billing' => $this->getBillingAddress(),
             'customer' => $this->getCustomer(),
